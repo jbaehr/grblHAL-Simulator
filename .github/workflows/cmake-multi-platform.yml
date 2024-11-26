@@ -18,10 +18,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release]
-        c_compiler: [gcc, clang, cl]
+        c_compiler: [gcc, clang]
         include:
         - os: windows-latest
-          c_compiler: cl
+          c_compiler: gcc
         - os: ubuntu-latest
           c_compiler: gcc
         - os: ubuntu-latest
@@ -30,13 +30,7 @@ jobs:
           c_compiler: clang
         exclude:
         - os: windows-latest
-          c_compiler: gcc
-        - os: windows-latest
           c_compiler: clang
-        - os: ubuntu-latest
-          c_compiler: cl
-        - os: macos-latest
-          c_compiler: cl
         - os: macos-latest
           c_compiler: gcc
 
@@ -52,6 +46,21 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Setup msys2
+      if: runner.os == 'Windows'
+      uses: msys2/setup-msys2@v2
+      id: msys2
+      with:
+        msystem: UCRT64
+        install: mingw-w64-ucrt-x86_64-gcc
+
+    - name: Add msys path to $PATH env
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        #echo "PATH=$PATH:${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+        echo 'CMAKE_GENERATOR="MinGW Makefiles"' >> $GITHUB_ENV
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory.
